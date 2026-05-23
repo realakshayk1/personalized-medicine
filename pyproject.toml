@@ -40,7 +40,20 @@ pretty = true
 exclude = ["build/", "dist/", ".venv/", "node_modules/"]
 
 [[tool.mypy.overrides]]
-module = ["scanpy.*", "anndata.*", "scipy.*", "scrublet.*", "harmonypy.*", "celltypist.*", "e2b_code_interpreter.*"]
+module = [
+    "scanpy.*",
+    "anndata.*",
+    "scipy.*",
+    "scrublet.*",
+    "harmonypy.*",
+    "celltypist.*",
+    "e2b_code_interpreter.*",
+    "sse_starlette.*",
+    "aiosqlite.*",
+    "yaml",
+    "yaml.*",
+    "claude_agent_sdk.*",
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

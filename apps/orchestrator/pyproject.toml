@@ -1,0 +1,57 @@
+[project]
+name = "lattice-orchestrator"
+version = "0.1.0"
+description = "Lattice orchestrator service — FastAPI + Claude Agent SDK"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.7",
+    "sqlalchemy>=2.0",
+    "aiosqlite>=0.20",
+    "claude-agent-sdk>=0.1",
+    "e2b-code-interpreter>=1.0",
+    "anndata>=0.10",
+    "loguru>=0.7",
+    "python-multipart>=0.0.9",
+    "sse-starlette>=2.1",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+    "lattice-primitives",
+]
+
+[tool.uv.sources]
+lattice-primitives = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["lattice"]
+
+[tool.ruff.lint.per-file-ignores]
+# AnnData/Scanpy convention: `.X` is the canonical attribute; uppercase locals are idiomatic.
+# Test mocks named MockFoo are the standard unittest pattern.
+"tests/**" = ["N806", "B905"]
+"lattice/sandbox.py" = ["N806"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "anndata.*",
+    "scanpy.*",
+    "scipy.*",
+    "e2b_code_interpreter.*",
+    "sse_starlette.*",
+    "aiosqlite.*",
+    "yaml",
+    "yaml.*",
+    "claude_agent_sdk.*",
+]
+ignore_missing_imports = true

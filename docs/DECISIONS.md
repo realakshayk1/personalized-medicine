@@ -44,8 +44,53 @@ Secondary reasons: hallucinated Scanpy function names; missing `random_state`; u
 ## ADR-002 — Streaming protocol for execute endpoint
 
 **Date:** 2026-05-22
-**Status:** Proposed (subagent B finalizes)
+**Status:** Accepted (subagent B — SSE chosen)
 
-The `/sessions/{id}/execute` endpoint streams per-step progress. SSE vs WebSocket is chosen by subagent B based on which maps more naturally onto the Claude Agent SDK's streaming output. Decision recorded here once made.
+### Decision
+
+The `/sessions/{id}/execute` endpoint uses **Server-Sent Events (SSE)** via `sse-starlette`.
+
+### Reasoning
+
+1. The execute endpoint is strictly server→client (one-way). The client sends the plan once; the server streams events back. SSE maps onto this naturally; WebSocket's bidirectional channel adds complexity without benefit.
+2. SSE maps onto the Claude Agent SDK's `async for message in query(...)` iterator directly: each iteration yields a message that becomes an SSE event.
+3. SSE is HTTP/1.1 native, works through standard load balancers and proxies, and requires no special client-side library — the browser's `EventSource` API suffices.
+4. SSE reconnect semantics (`Last-Event-ID`) give free retry without manual state management.
+5. `sse-starlette` integrates trivially with FastAPI and adds ~200 lines of dependency vs. the complexity of `websockets`.
+
+### Dependency
+
+`sse-starlette>=2.1` added to `apps/orchestrator/pyproject.toml`.
+
+---
+
+## ADR-003 — Default sandbox is in-process (FakeSandbox); E2B is opt-in
+
+**Date:** 2026-05-22
+**Status:** Accepted (subagent B)
+
+### Decision
+
+The default sandbox for v0.1 local-first development is **FakeSandbox**, which executes primitives in-process via `lattice_primitives.run_primitive`. The `E2BSandbox` class exists but is never instantiated by default; it requires `E2B_API_KEY` and explicit opt-in.
+
+### Reasoning
+
+1. **Safety argument**: FakeSandbox is architecturally safe for v0.1 because all execution flows through the registered, schema-validated primitive registry (ADR-001). There is no `exec`/`eval` path. The only code that runs is human-written, version-pinned, citation-bearing primitive functions.
+2. **Local-first**: v0.1 targets local desktop use (Tauri app). No network round-trip to E2B = lower latency, no cold-start cost, no API key required.
+3. **HIPAA/data-residency**: user data never leaves the machine by default. Cloud burst is an explicit user choice.
+4. **Simplicity**: FakeSandbox removes E2B cold-start latency (~5–15s), billing, and dependency on external service availability from the critical development path.
+5. **Test isolation**: FakeSandbox is fully deterministic and requires no mocking of external services.
+
+### When to use E2BSandbox
+
+- Cloud burst: user requests processing on a remote server.
+- Untrusted code execution (future: user-contributed primitives that haven't been audited).
+- R primitives (DESeq2, sctransform) that require R 4.4 — not in v0.1 scope.
+
+### Consequences
+
+- All v0.1 tests use FakeSandbox (no E2B API key required in CI).
+- Live E2B tests are gated with `@pytest.mark.live` and skipped unless `E2B_API_KEY` is set.
+- The architectural guarantee (primitives = the only execution path) means the sandbox boundary is a performance and isolation boundary, not a security one, for v0.1.
 
 ---

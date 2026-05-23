@@ -1,0 +1,12 @@
+name: standard_scrnaseq
+description: Standard scRNA-seq QC + preprocessing through the 3 v0.1 primitives.
+allowed_primitives:
+  - calculate_qc_metrics
+  - filter_cells_min_counts
+  - filter_genes_min_cells
+  - normalize_total_log1p
+canonical_sequence:
+  - calculate_qc_metrics
+  - filter_cells_min_counts
+  - filter_genes_min_cells
+  - normalize_total_log1p

@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "allowJs": true,
+    "noEmit": true
+  },
+  "include": [
+    "next.config.mjs",
+    "postcss.config.mjs",
+    "src/**/*",
+    "tailwind.config.ts",
+    "tests/**/*",
+    "vitest.config.ts",
+    ".next/types/**/*.ts"
+  ]
+}
