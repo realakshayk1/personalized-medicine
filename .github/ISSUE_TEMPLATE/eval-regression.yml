@@ -1,0 +1,108 @@
+name: Eval regression
+description: An eval suite result regressed against the previous baseline in docs/EVAL.md, OR trap detection recall dropped below 100%.
+title: "[eval] <suite>/<dataset>: <metric> regressed <baseline> → <current>"
+labels: ["area:eval", "type:regression"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Eval regressions block release. Note that **trap detection recall < 100% is categorically worse than a cell-type F1 drop** — that field is separate from the general "metric that regressed" field for a reason. Triage will read it first.
+
+  - type: dropdown
+    id: suite
+    attributes:
+      label: Eval suite
+      options:
+        - "quick (PBMC 3k subset)"
+        - "full (5 published papers + HCA immune)"
+        - "trap (synthetic failure-mode fixtures)"
+    validations:
+      required: true
+
+  - type: input
+    id: dataset
+    attributes:
+      label: Dataset
+      description: Exact dataset identifier from `eval/benchmarks/<dataset>/README.md` (PBMC 3k, Tabula Muris, HCA immune, GSE-xxxxx, etc.).
+      placeholder: pbmc3k
+    validations:
+      required: true
+
+  - type: dropdown
+    id: trap_detection_recall
+    attributes:
+      label: Trap detection recall (separate from other metrics)
+      description: |
+        On the trap suite, did Lattice flag every synthetic failure-mode fixture?
+        **Anything other than "100% — every trap flagged" is a P0 escalation regardless of other metric movement.**
+      options:
+        - "100% — every trap flagged"
+        - "<100% — at least one trap missed (P0 escalation)"
+        - "Not applicable (this regression isn't on the trap suite)"
+    validations:
+      required: true
+
+  - type: input
+    id: regressed_metric
+    attributes:
+      label: Regressed metric name
+      description: e.g. `cell_type_f1_macro`, `de_top50_overlap`, `reproducibility_hash_match`, `runtime_sec`.
+      placeholder: cell_type_f1_macro
+    validations:
+      required: true
+
+  - type: input
+    id: baseline
+    attributes:
+      label: Baseline value (from docs/EVAL.md)
+      description: The previous recorded value for this metric in `docs/EVAL.md`. Include the commit/tag it was recorded against.
+      placeholder: "0.78 (v0.0.2)"
+    validations:
+      required: true
+
+  - type: input
+    id: current
+    attributes:
+      label: Current value
+      placeholder: "0.71"
+    validations:
+      required: true
+
+  - type: input
+    id: target
+    attributes:
+      label: AGENTS.md target for this metric
+      description: e.g. cell-type F1 ≥ 0.75, DE top-50 overlap ≥ 60%, trap recall = 100%, reproducibility = 100%.
+      placeholder: ≥ 0.75
+    validations:
+      required: true
+
+  - type: input
+    id: commit_range
+    attributes:
+      label: Suspected commit range
+      description: Range between the last green eval and the regression. Use `git log <last-green>..HEAD --oneline` if known; otherwise paste the head commit.
+      placeholder: f87a6d3..HEAD
+
+  - type: textarea
+    id: eval_report
+    attributes:
+      label: Eval report excerpt
+      description: Paste the markdown table or JSON from the run that surfaced the regression (output of `uv run python -m eval.run --suite ... --output`).
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: suspected_cause
+    attributes:
+      label: Suspected cause (if any)
+      description: Optional — primitive parameter change, prompt version bump, scanpy upgrade, sandbox flavor switch, etc.
+
+  - type: input
+    id: scanpy_version
+    attributes:
+      label: scanpy version
+      placeholder: "1.11.5"
+    validations:
+      required: true
