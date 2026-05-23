@@ -24,6 +24,11 @@ extend-exclude = ["**/.venv", "**/node_modules"]
 select = ["E", "F", "I", "B", "UP", "N", "W"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+# Tests use Scanpy/AnnData conventions (`X` for the data matrix) and
+# unittest's MockFoo naming. zip(strict=) noise in tests is also noise.
+"**/tests/**" = ["N806", "B905"]
+
 [tool.ruff.format]
 quote-style = "double"
 
@@ -57,7 +62,10 @@ module = [
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-testpaths = ["packages/primitives/tests", "apps/orchestrator/tests", "tests"]
+# Run per-package via the `pytest-all` script (see scripts/) — invoking pytest
+# with all three testpaths in one session triggers a pluggy conftest-name
+# collision on Windows. Each package's conftest fixtures stay local.
+testpaths = ["tests"]
 asyncio_mode = "auto"
 filterwarnings = [
     "ignore::DeprecationWarning",
