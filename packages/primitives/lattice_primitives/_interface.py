@@ -15,7 +15,8 @@ defines only the Pydantic models and protocol that all consumers can rely on.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal, Protocol
+from collections.abc import Callable
+from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 

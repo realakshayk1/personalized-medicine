@@ -1,0 +1,3 @@
+{% block user %}Filtered out cells with fewer than {{ params.get('min_counts_per_cell', 500) }} total UMI counts; {{ n_obs }} cells remain after filtering.{% endblock %}
+
+{% block methods %}Low-quality cells were removed using sc.pp.filter_cells from Scanpy [scanpy_filter_cells]. Cells with fewer than {{ params.get('min_counts_per_cell', 500) }} total UMI counts were excluded from downstream analysis. This threshold was applied to remove empty droplets, dead cells, and other low-quality barcodes that would introduce noise into the analysis.{% endblock %}
