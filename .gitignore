@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+.next/
+.turbo/
+dist/
+*.tsbuildinfo
+
+# Tauri
+src-tauri/target/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Lattice
+*.h5ad
+!eval/benchmarks/**/*.h5ad
+*.sqlite
+*.db
+.env
+.env.local
+
+# Lockfiles kept
+!uv.lock
+!pnpm-lock.yaml

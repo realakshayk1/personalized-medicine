@@ -1,0 +1,23 @@
+scanpy_calculate_qc_metrics:
+  title: "SCANPY: large-scale single-cell gene expression data analysis"
+  authors: "Wolf, F.A., Angerer, P., & Theis, F.J."
+  year: 2018
+  journal: "Genome Biology"
+  doi: "10.1186/s13059-017-1382-0"
+  url: "https://doi.org/10.1186/s13059-017-1382-0"
+
+theis_normalization_2019:
+  title: "Current best practices in single-cell RNA-seq analysis: a tutorial"
+  authors: "Luecken, M.D. & Theis, F.J."
+  year: 2019
+  journal: "Molecular Systems Biology"
+  doi: "10.15252/msb.20188746"
+  url: "https://doi.org/10.15252/msb.20188746"
+
+scanpy_filter_cells:
+  title: "SCANPY: large-scale single-cell gene expression data analysis"
+  authors: "Wolf, F.A., Angerer, P., & Theis, F.J."
+  year: 2018
+  journal: "Genome Biology"
+  doi: "10.1186/s13059-017-1382-0"
+  url: "https://doi.org/10.1186/s13059-017-1382-0"

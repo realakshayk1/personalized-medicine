@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --version)",
+      "Bash(uv --version)",
+      "Bash(git --version)"
+    ]
+  }
+}

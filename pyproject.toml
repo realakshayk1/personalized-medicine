@@ -1,0 +1,72 @@
+[project]
+name = "lattice-workspace"
+version = "0.0.1"
+description = "Lattice — AI bench scientist for single-cell biology (workspace root)"
+requires-python = ">=3.11,<3.13"
+
+[tool.uv.workspace]
+members = ["apps/orchestrator", "packages/primitives"]
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.7.0",
+    "mypy>=1.13.0",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["**/.venv", "**/node_modules"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "W"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests use Scanpy/AnnData conventions (`X` for the data matrix) and
+# unittest's MockFoo naming. zip(strict=) noise in tests is also noise.
+"**/tests/**" = ["N806", "B905"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+no_implicit_optional = true
+show_error_codes = true
+pretty = true
+exclude = ["build/", "dist/", ".venv/", "node_modules/"]
+
+[[tool.mypy.overrides]]
+module = [
+    "scanpy.*",
+    "anndata.*",
+    "scipy.*",
+    "scrublet.*",
+    "harmonypy.*",
+    "celltypist.*",
+    "e2b_code_interpreter.*",
+    "sse_starlette.*",
+    "aiosqlite.*",
+    "yaml",
+    "yaml.*",
+    "claude_agent_sdk.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+# Run per-package via the `pytest-all` script (see scripts/) — invoking pytest
+# with all three testpaths in one session triggers a pluggy conftest-name
+# collision on Windows. Each package's conftest fixtures stay local.
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

@@ -1,0 +1,95 @@
+name: Smoke finding
+description: Something broke while running an end-to-end smoke (typically the closeout / manual smoke after a milestone). Use when you don't yet know which layer is at fault.
+title: "[smoke] <one-line symptom>"
+labels: ["area:unknown", "type:smoke"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template when running a manual or scripted end-to-end smoke and something fails — and you don't yet know whether the bug is in a primitive, the orchestrator, the planner, the frontend, or the eval harness.
+
+        **The `area:unknown` label is intentional.** The triager will retag during first review based on the symptoms below — that retag *is* the routing decision. Don't pre-route by picking a different template before you've actually investigated.
+
+        After 5–10 smoke findings come in, common patterns will warrant their own dedicated templates.
+
+  - type: dropdown
+    id: likely_failure_mode
+    attributes:
+      label: Likely failure mode (best guess, pre-investigation)
+      description: |
+        Pre-populated with the four most common candidates from Wave 2 / Session A smoke. Pick the closest match; the triager will confirm or override.
+      options:
+        - "Mitochondrial regex (mt- vs MT-, species detection)"
+        - "var_names_make_unique() not called on ingest (duplicate gene symbols)"
+        - "Filter defaults too aggressive — wiped out all cells / genes"
+        - "Sparse vs dense .X handling (csr_matrix assumed but got ndarray, or vice versa)"
+        - "Other (describe below)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: smoke_command
+    attributes:
+      label: Smoke command / scenario
+      description: |
+        Exact command(s) run, or scenario description if manual (e.g. "dragged pbmc3k.h5ad into the frontend, typed 'Run QC and filter', clicked Run Plan").
+      render: bash
+    validations:
+      required: true
+
+  - type: input
+    id: input_dataset
+    attributes:
+      label: Input dataset
+      description: Path under `eval/benchmarks/` or `eval/traps/`, with the sha256 from its README.md.
+      placeholder: eval/benchmarks/pbmc3k/pbmc3k.h5ad (sha256:...)
+    validations:
+      required: true
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Error / unexpected behavior
+      description: |
+        Exact error message, stack trace, surprising output, or "this number should not be possible" observation. Include the orchestrator log lines around the failure.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: suspected_layer
+    attributes:
+      label: Suspected layer (free-form)
+      description: |
+        Your best guess at which component is broken: primitive (which one?), orchestrator (which component?), planner prompt, frontend, eval harness, dataset itself, environment.
+        It's fine to write "I don't know" — that's why this template exists.
+
+  - type: textarea
+    id: proposed_fix
+    attributes:
+      label: Proposed fix (optional, do NOT apply yet)
+      description: |
+        Per the Session A closeout rule: smoke findings are captured, not patched mid-smoke. Write the proposed fix here so it's recorded; a deliberate follow-up session decides whether to apply it.
+
+  - type: input
+    id: lattice_commit
+    attributes:
+      label: Lattice commit / tag
+      placeholder: v0.0.1
+    validations:
+      required: true
+
+  - type: input
+    id: scanpy_version
+    attributes:
+      label: scanpy version
+      placeholder: "1.11.5"
+    validations:
+      required: true
+
+  - type: textarea
+    id: attached_artifacts
+    attributes:
+      label: Captured artifacts
+      description: |
+        Paths to log files, provenance JSON, screenshots saved during the smoke (e.g. `docs/smoke/pbmc3k_run1.json`, `docs/smoke/pbmc3k_run1.log`).

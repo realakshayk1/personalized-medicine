@@ -1,0 +1,114 @@
+name: Primitive bug
+description: A registered primitive (in packages/primitives) produces wrong output, fails schema validation incorrectly, or violates a sanity-check invariant.
+title: "[primitive] <primitive_name>: <one-line symptom>"
+labels: ["area:primitives", "type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Primitives are the moat. Bugs here are higher-priority than orchestrator or UI bugs because they affect every workflow that uses the primitive. Please fill every required field — without a minimal reproducer, primitive bugs are unfixable.
+
+  - type: input
+    id: primitive_name
+    attributes:
+      label: Primitive name
+      description: The registered name (e.g. `calculate_qc_metrics`, `normalize_total_log1p`).
+      placeholder: normalize_total_log1p
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category (per AGENTS.md)
+      options:
+        - qc
+        - preprocess
+        - dim_reduce
+        - cluster
+        - integrate
+        - annotate
+        - de
+        - plot
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility_broken
+    attributes:
+      label: Is reproducibility broken?
+      description: |
+        Run the primitive twice with the same input and the same `random_state`. Do the output hashes match?
+        **If "Yes": this is a P0 moat-leak. The architectural guarantee is that primitives are bit-reproducible.**
+      options:
+        - "No — output hashes match across runs"
+        - "Yes — output hashes differ (P0 escalation)"
+        - "Unknown — haven't checked"
+    validations:
+      required: true
+
+  - type: textarea
+    id: minimal_reproducer
+    attributes:
+      label: Minimal reproducing AnnData
+      description: |
+        REQUIRED. Either:
+        (a) a synthetic-generation snippet that produces the failing AnnData (use the conftest fixture pattern in `packages/primitives/tests/conftest.py`), or
+        (b) the sha256 hash and path to a small fixture committed under `eval/benchmarks/` or `eval/traps/`.
+        Without this, the bug cannot be reproduced and will be closed.
+      render: python
+      placeholder: |
+        import numpy as np, anndata as ad, scipy.sparse as sp
+        rng = np.random.default_rng(42)
+        X = sp.csr_matrix(rng.poisson(0.5, size=(200, 100)).astype(np.float32))
+        adata = ad.AnnData(X=X, obs={"condition": ["treated"]*100 + ["control"]*100})
+        # ... call the primitive ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected output
+      description: What columns/layers/shapes should result. Cite the primitive's `produces` schema if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual output
+      description: What you got. Paste the `PrimitiveResult` JSON if available (input_hash, output_hash, warnings, n_obs_before/after).
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: sanity_warnings
+    attributes:
+      label: Sanity-check warnings emitted
+      description: From `PrimitiveResult.warnings`. If the bug is that a warning *should* have been emitted but wasn't, say so.
+
+  - type: input
+    id: scanpy_version
+    attributes:
+      label: scanpy version
+      description: Output of `uv run python -c "import scanpy; print(scanpy.__version__)"`
+      placeholder: "1.11.5"
+    validations:
+      required: true
+
+  - type: input
+    id: lattice_commit
+    attributes:
+      label: Lattice commit / tag
+      description: Output of `git rev-parse --short HEAD` or the tag (e.g. `v0.0.1`).
+    validations:
+      required: true
+
+  - type: input
+    id: citation_key
+    attributes:
+      label: Primitive's citation key
+      description: From the primitive's `@primitive(citation=...)` decorator argument. Helps confirm whether the bug is in the wrapper or the underlying Scanpy/Seurat call.
+      placeholder: scanpy_calculate_qc_metrics
