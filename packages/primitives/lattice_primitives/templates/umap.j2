@@ -1,0 +1,3 @@
+{% block user %}Computed a 2D UMAP embedding (min_dist={{ params.get('min_dist', 0.5) }}) for visualizing the cell populations.{% endblock %}
+
+{% block methods %}A two-dimensional UMAP embedding was computed with sc.tl.umap from Scanpy (min_dist={{ params.get('min_dist', 0.5) }}, random_state={{ params.get('random_state', 0) }}) on the previously constructed neighbor graph [scanpy_umap_neighbors]. Coordinates were stored in adata.obsm['X_umap'] for visualization only and were not used for downstream quantitative analysis.{% endblock %}

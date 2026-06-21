@@ -1,0 +1,3 @@
+{% block user %}Built a k-nearest-neighbor graph (n_neighbors={{ params.get('n_neighbors', 15) }}) on the PCA embedding — the shared basis for UMAP and clustering.{% endblock %}
+
+{% block methods %}A nearest-neighbor graph was constructed with sc.pp.neighbors from Scanpy using n_neighbors={{ params.get('n_neighbors', 15) }} over the principal-component representation (random_state={{ params.get('random_state', 0) }}) [scanpy_umap_neighbors]. The graph connectivities were stored in adata.obsp and used for both the UMAP embedding and Leiden community detection.{% endblock %}

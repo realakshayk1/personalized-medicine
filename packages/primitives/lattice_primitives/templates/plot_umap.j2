@@ -1,0 +1,3 @@
+{% block user %}Rendered the UMAP embedding colored by '{{ params.get('color', 'leiden') }}'.{% endblock %}
+
+{% block methods %}The UMAP embedding was visualized with sc.pl.umap from Scanpy, with cells colored by adata.obs['{{ params.get('color', 'leiden') }}']. The figure was rendered using the non-interactive Agg backend and exported as a PNG image.{% endblock %}

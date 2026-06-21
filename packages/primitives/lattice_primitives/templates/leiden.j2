@@ -1,0 +1,3 @@
+{% block user %}Partitioned cells into clusters using Leiden community detection (resolution={{ params.get('resolution', 1.0) }}); labels are in adata.obs['leiden'].{% endblock %}
+
+{% block methods %}Cells were clustered with the Leiden algorithm via sc.tl.leiden from Scanpy (resolution={{ params.get('resolution', 1.0) }}, flavor='igraph', n_iterations=2, random_state={{ params.get('random_state', 0) }}) applied to the neighbor graph, following Traag et al. [traag_leiden_2019]. Cluster assignments were stored as a categorical variable in adata.obs['leiden'].{% endblock %}
