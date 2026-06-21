@@ -12,14 +12,15 @@
 | Reproducibility (bit-identical) | 100% | covered by primitive tests |
 | Standalone notebook validity | 100% | not built (export pending, M4) |
 
-## Last run — suite `quick` (2026-06-21)
+## Last run — suite `trap` (2026-06-21)
 
 | Suite | Dataset | Metric | Value | Result | Date |
 |---|---|---|---|---|---|
-| quick | pbmc3k | loaded raw cells | 2700 | PASS | 2026-06-21 |
-| quick | pbmc3k | standard chain completes | 2700 cells retained | PASS | 2026-06-21 |
-| quick | pbmc3k | leiden clusters produced | 9 | PASS | 2026-06-21 |
-| quick | pbmc3k_processed | cluster-agreement ARI (placeholder) | 0.619 (n=2638) | PASS | 2026-06-21 |
+| trap | high_mito | calculate_qc_metrics warn | warn fired | PASS | 2026-06-21 |
+| trap | not_raw_counts | normalize_total_log1p error | error fired | PASS | 2026-06-21 |
+| trap | under_clustering | leiden warn | warn fired | PASS | 2026-06-21 |
+| trap | hvg_overrequest | highly_variable_genes warn | warn fired | PASS | 2026-06-21 |
+| trap | overaggressive_filter | filter_cells_min_counts error | error fired | PASS | 2026-06-21 |
 
 ### Notes
 

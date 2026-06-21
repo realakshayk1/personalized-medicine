@@ -9,6 +9,8 @@ Imports are alphabetical (import-sorter friendly). Each exists purely for its
 registration side effect.
 """
 
+import lattice_primitives.annotate.celltypist  # noqa: F401
+import lattice_primitives.annotate.mllm_consensus  # noqa: F401
 import lattice_primitives.cluster.leiden  # noqa: F401
 import lattice_primitives.de.pseudobulk_deseq2  # noqa: F401
 import lattice_primitives.de.rank_genes_groups  # noqa: F401

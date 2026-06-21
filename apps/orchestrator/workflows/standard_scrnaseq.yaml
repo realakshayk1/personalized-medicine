@@ -14,6 +14,8 @@ allowed_primitives:
   - umap
   - leiden
   - rank_genes_groups
+  - celltypist
+  - mllm_consensus
   - plot_umap
   - dotplot
   - heatmap
@@ -29,6 +31,8 @@ canonical_sequence:
   - umap
   - leiden
   - rank_genes_groups
+  - celltypist
+  - mllm_consensus
   - plot_umap
   - dotplot
   - heatmap
