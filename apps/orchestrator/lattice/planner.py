@@ -42,6 +42,51 @@ def load_system_prompt() -> str:
     return path.read_text(encoding="utf-8")
 
 
+def load_few_shot_examples() -> list[dict[str, Any]]:
+    """Load few-shot planner examples from planner_examples.jsonl.
+
+    Each line is a JSON object with keys: `user_message`, `anndata_summary`,
+    and `plan` (a Plan-shaped dict). Blank lines are skipped. Returns an empty
+    list if the file is absent so the planner still functions without examples.
+    """
+    path = _PROMPTS_DIR / "planner_examples.jsonl"
+    if not path.exists():
+        return []
+    examples: list[dict[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        examples.append(json.loads(line))
+    return examples
+
+
+def render_few_shot_block(examples: list[dict[str, Any]]) -> str:
+    """Render few-shot examples as a prompt-appendable text block.
+
+    Produces a deterministic, compact rendering of each example as a
+    request/AnnData-summary -> Plan-JSON pair. Returns "" when there are no
+    examples so the system prompt is unchanged in that case.
+    """
+    if not examples:
+        return ""
+    parts: list[str] = [
+        "\n\n---\n\n## Few-shot examples\n",
+        "Each example shows a user request (plus AnnData summary) and the exact "
+        "JSON Plan you should emit. Follow these patterns; only propose "
+        "primitives in the active workflow's allowed_primitives.\n",
+    ]
+    for i, ex in enumerate(examples, start=1):
+        user_message = ex.get("user_message", "")
+        summary = ex.get("anndata_summary", {})
+        plan = ex.get("plan", {})
+        parts.append(f"\n### Example {i}\n")
+        parts.append(f"User request: {user_message}\n")
+        parts.append(f"AnnData summary: {json.dumps(summary)}\n")
+        parts.append(f"Plan:\n{json.dumps(plan)}\n")
+    return "".join(parts)
+
+
 # ---------------------------------------------------------------------------
 # Default chat function using Claude Agent SDK
 # ---------------------------------------------------------------------------
@@ -53,13 +98,13 @@ async def _default_chat_fn(
 ) -> str:
     """Call Claude via the Claude Agent SDK and return the assistant text."""
     from claude_agent_sdk import query
-    from claude_agent_sdk.types import AssistantMessage, ClaudeAgentOptions, ResultMessage
-
-    full_prompt = (
-        f"{system_prompt}\n\n"
-        f"---\n\n"
-        f"User request: {user_message}"
+    from claude_agent_sdk.types import (
+        AssistantMessage,
+        ClaudeAgentOptions,
+        ResultMessage,
     )
+
+    full_prompt = f"{system_prompt}\n\n---\n\nUser request: {user_message}"
 
     options = ClaudeAgentOptions(
         system_prompt="",  # system prompt embedded in prompt for simplicity
@@ -109,7 +154,13 @@ class Planner:
         self._chat_fn: Callable[..., Any] = chat_fn or _default_chat_fn
         self._workflow_name = workflow_name
         self._workflow = load_workflow(workflow_name)
-        self._system_prompt = load_system_prompt()
+        self._few_shot_examples = load_few_shot_examples()
+        # System prompt = primitive/ordering spec + appended few-shot examples.
+        # The chat_fn seam receives this assembled prompt unchanged, so tests
+        # that inject a stub chat_fn keep working.
+        self._system_prompt = load_system_prompt() + render_few_shot_block(
+            self._few_shot_examples
+        )
         self._allowed = set(self._workflow.get("allowed_primitives", []))
 
     def _validate_plan(self, plan: Plan) -> None:
@@ -150,9 +201,7 @@ class Planner:
         Plan — validated against PRIMITIVE_REGISTRY and workflow.
         """
         # Ensure primitives are registered
-        import lattice_primitives.preprocess.filter_cells_basic  # noqa: F401
-        import lattice_primitives.preprocess.normalize_total_log1p  # noqa: F401
-        import lattice_primitives.qc.calculate_qc_metrics  # noqa: F401
+        import lattice_primitives.all_primitives  # noqa: F401
 
         context_msg = (
             f"Session ID: {session_id}\n"
@@ -170,7 +219,9 @@ class Planner:
         if cleaned.startswith("```"):
             lines = cleaned.split("\n")
             # Remove first and last fence lines
-            cleaned = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            cleaned = "\n".join(
+                lines[1:-1] if lines[-1].strip() == "```" else lines[1:]
+            )
         cleaned = cleaned.strip()
 
         try:
@@ -187,7 +238,9 @@ class Planner:
         try:
             plan = Plan.model_validate(plan_dict)
         except ValidationError as exc:
-            raise ValueError(f"Planner output failed Pydantic validation: {exc}") from exc
+            raise ValueError(
+                f"Planner output failed Pydantic validation: {exc}"
+            ) from exc
 
         self._validate_plan(plan)
         logger.info(f"Planner: plan validated — {len(plan.steps)} step(s)")

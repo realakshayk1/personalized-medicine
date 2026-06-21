@@ -1,0 +1,3 @@
+{% block user %}Drew an expression heatmap of the top {{ params.get('n_genes', 10) }} marker genes per group in adata.obs['{{ params.get('groupby', 'leiden') }}'].{% endblock %}
+
+{% block methods %}The top {{ params.get('n_genes', 10) }} ranked marker genes per group were visualized as an expression heatmap with sc.pl.rank_genes_groups_heatmap from Scanpy (groupby='{{ params.get('groupby', 'leiden') }}'), with cells grouped by cluster and colored by log-normalized expression [scanpy_rank_genes_groups].{% endblock %}

@@ -1,12 +1,39 @@
 name: standard_scrnaseq
-description: Standard scRNA-seq QC + preprocessing through the 3 v0.1 primitives.
+description: >
+  Standard scRNA-seq pipeline: QC + preprocessing, feature selection,
+  dimensionality reduction, clustering, marker differential expression, and
+  publication figures (UMAP, dotplot, heatmap, volcano).
 allowed_primitives:
   - calculate_qc_metrics
   - filter_cells_min_counts
   - filter_genes_min_cells
   - normalize_total_log1p
+  - highly_variable_genes
+  - pca
+  - neighbors
+  - umap
+  - leiden
+  - rank_genes_groups
+  - celltypist
+  - mllm_consensus
+  - plot_umap
+  - dotplot
+  - heatmap
+  - volcano
 canonical_sequence:
   - calculate_qc_metrics
   - filter_cells_min_counts
   - filter_genes_min_cells
   - normalize_total_log1p
+  - highly_variable_genes
+  - pca
+  - neighbors
+  - umap
+  - leiden
+  - rank_genes_groups
+  - celltypist
+  - mllm_consensus
+  - plot_umap
+  - dotplot
+  - heatmap
+  - volcano

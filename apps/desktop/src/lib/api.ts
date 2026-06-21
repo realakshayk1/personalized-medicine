@@ -59,6 +59,34 @@ export async function requestPlan(
   return res.json() as Promise<Plan>;
 }
 
+export type ExportFormat = "ipynb" | "py";
+
+export interface ExportResult {
+  filename: string;
+  content: string;
+}
+
+export async function exportNotebook(
+  sessionId: string,
+  format: ExportFormat = "ipynb"
+): Promise<ExportResult> {
+  const res = await fetch(
+    `${BASE_URL}/export/${sessionId}?format=${format}`,
+    { method: "GET" }
+  );
+  if (!res.ok) {
+    throw new Error(`exportNotebook failed: ${res.status} ${res.statusText}`);
+  }
+
+  // Derive filename from Content-Disposition when present.
+  const disposition = res.headers.get("content-disposition") ?? "";
+  const match = /filename="([^"]+)"/.exec(disposition);
+  const filename = match?.[1] ?? `lattice_${sessionId}.${format}`;
+
+  const content = await res.text();
+  return { filename, content };
+}
+
 export async function executePlan(
   sessionId: string,
   plan: Plan,
