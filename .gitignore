@@ -41,3 +41,6 @@ Thumbs.db
 # Lockfiles kept
 !uv.lock
 !pnpm-lock.yaml
+
+# Eval downloaded datasets (not committed)
+eval/data/

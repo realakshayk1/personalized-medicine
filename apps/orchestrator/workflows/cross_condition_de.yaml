@@ -1,0 +1,16 @@
+name: cross_condition_de
+description: >
+  Cross-condition differential expression via pseudobulk aggregation + DESeq2.
+  The 2023-2024 single-cell community consensus: aggregate cells to pseudobulk
+  per sample x cell-group (summed raw counts), then run a bulk DE method, to
+  avoid the pseudo-replication inflation of naive per-cell tests. Operates on
+  RAW counts and requires obs['sample'] (or equivalent) + a grouping column.
+  This is a SEPARATE path from standard_scrnaseq, not part of the clustering
+  sequence. Biology defaults (min_cells, design, contrast levels) are PROVISIONAL
+  pending LSM-founder review — see docs/BIOLOGY_DEFAULTS.md.
+allowed_primitives:
+  - pseudobulk
+  - pseudobulk_deseq2
+canonical_sequence:
+  - pseudobulk
+  - pseudobulk_deseq2

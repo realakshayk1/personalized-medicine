@@ -53,3 +53,35 @@ traag_leiden_2019:
   journal: "Scientific Reports"
   doi: "10.1038/s41598-019-41695-z"
   url: "https://doi.org/10.1038/s41598-019-41695-z"
+
+scanpy_rank_genes_groups:
+  title: "SCANPY: large-scale single-cell gene expression data analysis"
+  authors: "Wolf, F.A., Angerer, P., & Theis, F.J."
+  year: 2018
+  journal: "Genome Biology"
+  doi: "10.1186/s13059-017-1382-0"
+  url: "https://doi.org/10.1186/s13059-017-1382-0"
+
+love_deseq2_2014:
+  title: "Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2"
+  authors: "Love, M.I., Huber, W., & Anders, S."
+  year: 2014
+  journal: "Genome Biology"
+  doi: "10.1186/s13059-014-0550-8"
+  url: "https://doi.org/10.1186/s13059-014-0550-8"
+
+badia_decoupler_2022:
+  title: "decoupleR: ensemble of computational methods to infer biological activities from omics data"
+  authors: "Badia-i-Mompel, P., Velez Santiago, J., Braunger, J., Geiss, C., Dimitrov, D., Mueller-Dott, S., Taus, P., Dugourd, A., Holland, C.H., Ramirez Flores, R.O., & Saez-Rodriguez, J."
+  year: 2022
+  journal: "Bioinformatics Advances"
+  doi: "10.1093/bioadv/vbac016"
+  url: "https://doi.org/10.1093/bioadv/vbac016"
+
+korsunsky_harmony_2019:
+  title: "Fast, sensitive and accurate integration of single-cell data with Harmony"
+  authors: "Korsunsky, I., Millard, N., Fan, J., Slowikowski, K., Zhang, F., Wei, K., Baglaenko, Y., Brenner, M., Loh, P., & Raychaudhuri, S."
+  year: 2019
+  journal: "Nature Methods"
+  doi: "10.1038/s41592-019-0619-0"
+  url: "https://doi.org/10.1038/s41592-019-0619-0"

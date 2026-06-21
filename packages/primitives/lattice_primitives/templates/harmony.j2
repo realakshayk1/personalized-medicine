@@ -1,0 +1,3 @@
+{% block user %}Corrected batch effects across the '{{ params.get('batch_key', 'batch') }}' groups using Harmony, producing an integrated embedding for downstream clustering.{% endblock %}
+
+{% block methods %}Batch integration was performed on the principal-component embedding using Harmony via sc.external.pp.harmony_integrate from Scanpy, with cells grouped by the '{{ params.get('batch_key', 'batch') }}' covariate (random_state={{ params.get('random_state', 0) }} for reproducibility) [korsunsky_harmony_2019]. The batch-corrected embedding was stored in adata.obsm['X_pca_harmony'] and used as the input representation for neighbor-graph construction.{% endblock %}

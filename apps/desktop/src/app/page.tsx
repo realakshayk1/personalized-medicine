@@ -144,7 +144,7 @@ export default function Home() {
                       onStepResult={setLatestResult}
                     />
                   ) : (
-                    <CodePanel plan={plan} />
+                    <CodePanel plan={plan} sessionId={sessionId} />
                   )}
                 </div>
               </Panel>

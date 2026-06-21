@@ -12,6 +12,8 @@ ADR-003 documents the decision that FakeSandbox is the default for v0.1.
 from __future__ import annotations
 
 import io
+import json
+import os
 import tempfile
 from typing import Any, Protocol, runtime_checkable
 
@@ -157,9 +159,12 @@ class E2BSandbox:
         self._sbx.files.write(self._remote_path, buf.read())
         logger.info(f"E2BSandbox: uploaded AnnData {adata.n_obs}x{adata.n_vars}")
 
-    async def run_primitive(self, name: str, params: dict[str, Any]) -> PrimitiveResult:
-        import json
+    # Sentinels wrap the JSON payload in stdout so we can extract it robustly
+    # even if the primitive (or its dependencies) print extra lines.
+    _SENTINEL_START = "__LATTICE_RESULT__"
+    _SENTINEL_END = "__END__"
 
+    async def run_primitive(self, name: str, params: dict[str, Any]) -> PrimitiveResult:
         if self._sbx is None:
             raise RuntimeError("E2BSandbox not initialized")
 
@@ -173,16 +178,76 @@ class E2BSandbox:
             f"params = json.loads('''{params_json}''')\n"
             f"adata_out, warnings, result = run_primitive('{name}', adata, **params)\n"
             f"adata_out.write_h5ad('{self._remote_path}')\n"
-            f"print(result.model_dump_json())\n"
+            # Wrap the JSON in sentinels so extra stdout lines don't corrupt parsing.
+            f"print('{self._SENTINEL_START}' + result.model_dump_json() + '{self._SENTINEL_END}')\n"
         )
         execution = self._sbx.run_code(code)
-        if execution.error:
-            raise RuntimeError(f"E2B primitive '{name}' failed: {execution.error}")
+        return self._parse_execution(execution, name)
 
-        import json as _json
+    @classmethod
+    def _parse_execution(cls, execution: Any, name: str) -> PrimitiveResult:
+        """Defensively parse an E2B execution result into a PrimitiveResult.
 
-        result_dict = _json.loads(execution.text)
-        return PrimitiveResult(**result_dict)
+        Raises RuntimeError on remote error, empty stdout, or malformed JSON.
+        Figures (PrimitiveResult.figures) ride along inside the JSON payload.
+        """
+        # 1. Remote execution error (exception / traceback in the sandbox).
+        error = getattr(execution, "error", None)
+        if error:
+            traceback = (
+                getattr(error, "traceback", None)
+                or getattr(error, "value", None)
+                or str(error)
+            )
+            raise RuntimeError(f"E2B primitive '{name}' failed: {traceback}")
+
+        # 2. Pull stdout. e2b exposes it as `.text` (logs.stdout is also possible).
+        stdout = getattr(execution, "text", None)
+        if not stdout:
+            logs = getattr(execution, "logs", None)
+            stdout_lines = getattr(logs, "stdout", None) if logs is not None else None
+            if stdout_lines:
+                stdout = "".join(stdout_lines)
+
+        if not stdout or not str(stdout).strip():
+            raise RuntimeError(
+                f"E2B primitive '{name}' produced no stdout; cannot parse result."
+            )
+
+        stdout = str(stdout)
+
+        # 3. Extract the sentinel-wrapped JSON payload.
+        start = stdout.find(cls._SENTINEL_START)
+        end = stdout.rfind(cls._SENTINEL_END)
+        if start != -1 and end != -1 and end > start:
+            payload = stdout[start + len(cls._SENTINEL_START) : end]
+        else:
+            # Fallback: take the last non-empty line and hope it is the JSON.
+            non_empty = [ln for ln in stdout.splitlines() if ln.strip()]
+            if not non_empty:
+                raise RuntimeError(
+                    f"E2B primitive '{name}' stdout had no parseable content. "
+                    f"Raw stdout: {stdout[:500]!r}"
+                )
+            payload = non_empty[-1]
+
+        # 4. Parse JSON defensively.
+        try:
+            result_dict = json.loads(payload)
+        except (json.JSONDecodeError, ValueError) as exc:
+            raise RuntimeError(
+                f"E2B primitive '{name}' returned non-JSON output. "
+                f"Raw stdout snippet: {stdout[:500]!r}"
+            ) from exc
+
+        # 5. Build the validated Pydantic model (figures included in the dict).
+        try:
+            return PrimitiveResult(**result_dict)
+        except Exception as exc:
+            raise RuntimeError(
+                f"E2B primitive '{name}' returned JSON that is not a valid "
+                f"PrimitiveResult: {exc}. Raw payload snippet: {payload[:500]!r}"
+            ) from exc
 
     async def download_anndata(self) -> anndata.AnnData:
         if self._sbx is None:
@@ -198,3 +263,35 @@ class E2BSandbox:
             self._sbx.kill()
             self._sbx = None
         logger.debug("E2BSandbox: closed")
+
+
+# ---------------------------------------------------------------------------
+# Factory — selects sandbox implementation (FakeSandbox is the default; ADR-003)
+# ---------------------------------------------------------------------------
+
+
+def make_sandbox(mode: str | None = None) -> SandboxProtocol:
+    """Return a sandbox implementation.
+
+    Selection order:
+    1. Explicit ``mode`` argument ("fake" or "e2b").
+    2. ``LATTICE_SANDBOX`` environment variable (same values).
+    3. Default: FakeSandbox (ADR-003 — in-process is the v0.1 default).
+
+    E2BSandbox is only constructed when explicitly requested. If the optional
+    ``e2b-code-interpreter`` dependency is missing, E2BSandbox's constructor
+    raises a clear ImportError; that propagates here unchanged.
+    """
+    resolved = (mode or os.environ.get("LATTICE_SANDBOX") or "fake").strip().lower()
+
+    if resolved == "e2b":
+        logger.info("make_sandbox: selecting E2BSandbox (cloud burst)")
+        return E2BSandbox()
+
+    if resolved not in ("fake", ""):
+        logger.warning(
+            f"make_sandbox: unknown sandbox mode {resolved!r}; defaulting to FakeSandbox"
+        )
+
+    logger.debug("make_sandbox: selecting FakeSandbox (default, ADR-003)")
+    return FakeSandbox()

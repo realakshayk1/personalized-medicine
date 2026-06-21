@@ -42,9 +42,10 @@ from lattice.models import (
     SessionCreateResponse,
     UploadResponse,
 )
+from lattice import export as export_module
 from lattice.planner import Planner
 from lattice.provenance import ProvenanceStore
-from lattice.sandbox import FakeSandbox
+from lattice.sandbox import SandboxProtocol, make_sandbox
 
 # ---------------------------------------------------------------------------
 # App state
@@ -55,8 +56,8 @@ _DB_PATH = os.environ.get("LATTICE_DB_PATH", ":memory:")
 _store: ProvenanceStore | None = None
 # Per-session AnnData summaries stored in memory (production would use SQLite)
 _session_summaries: dict[str, dict[str, Any]] = {}
-# Per-session FakeSandbox instances
-_session_sandboxes: dict[str, FakeSandbox] = {}
+# Per-session sandbox instances (FakeSandbox by default; see make_sandbox)
+_session_sandboxes: dict[str, SandboxProtocol] = {}
 
 
 def get_store() -> ProvenanceStore:
@@ -94,6 +95,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Notebook/report export routes (/export/{session_id})
+app.include_router(export_module.router)
 
 
 # ---------------------------------------------------------------------------
@@ -181,7 +185,7 @@ async def upload_h5ad(
         "obs_columns": obs_columns,
         "filename": filename,
     }
-    sandbox = FakeSandbox()
+    sandbox = make_sandbox()
     await sandbox.upload_anndata(adata)
     _session_sandboxes[session_id] = sandbox
 
@@ -242,7 +246,7 @@ async def execute_plan_endpoint(
     sandbox = _session_sandboxes.get(session_id)
     if sandbox is None:
         # Create a fresh FakeSandbox for sessions without an upload (test convenience)
-        sandbox = FakeSandbox()
+        sandbox = make_sandbox()
         _session_sandboxes[session_id] = sandbox
 
     plan = body.plan
