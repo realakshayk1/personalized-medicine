@@ -33,9 +33,7 @@ class SandboxProtocol(Protocol):
         """Upload an AnnData object into the sandbox."""
         ...
 
-    async def run_primitive(
-        self, name: str, params: dict[str, Any]
-    ) -> PrimitiveResult:
+    async def run_primitive(self, name: str, params: dict[str, Any]) -> PrimitiveResult:
         """Run a named primitive and return the result."""
         ...
 
@@ -72,17 +70,13 @@ class FakeSandbox:
     @staticmethod
     def _ensure_primitives_registered() -> None:
         """Import primitive modules so @primitive decorators fire and register them."""
-        import lattice_primitives.preprocess.filter_cells_basic  # noqa: F401
-        import lattice_primitives.preprocess.normalize_total_log1p  # noqa: F401
-        import lattice_primitives.qc.calculate_qc_metrics  # noqa: F401
+        import lattice_primitives.all_primitives  # noqa: F401
 
     async def upload_anndata(self, adata: anndata.AnnData) -> None:
         self._adata = adata
         logger.debug(f"FakeSandbox: uploaded AnnData {adata.n_obs}x{adata.n_vars}")
 
-    async def run_primitive(
-        self, name: str, params: dict[str, Any]
-    ) -> PrimitiveResult:
+    async def run_primitive(self, name: str, params: dict[str, Any]) -> PrimitiveResult:
         from lattice_primitives import run_primitive as _run
 
         if self._adata is None:
@@ -144,6 +138,7 @@ class E2BSandbox:
         # Lazy import so missing e2b-code-interpreter doesn't break FakeSandbox users
         try:
             from e2b_code_interpreter import Sandbox
+
             self._Sandbox = Sandbox
         except ImportError as exc:
             raise ImportError(
@@ -162,9 +157,7 @@ class E2BSandbox:
         self._sbx.files.write(self._remote_path, buf.read())
         logger.info(f"E2BSandbox: uploaded AnnData {adata.n_obs}x{adata.n_vars}")
 
-    async def run_primitive(
-        self, name: str, params: dict[str, Any]
-    ) -> PrimitiveResult:
+    async def run_primitive(self, name: str, params: dict[str, Any]) -> PrimitiveResult:
         import json
 
         if self._sbx is None:
@@ -175,9 +168,7 @@ class E2BSandbox:
             f"import json\n"
             f"import anndata as ad\n"
             f"from lattice_primitives import run_primitive, PRIMITIVE_REGISTRY\n"
-            f"import lattice_primitives.qc.calculate_qc_metrics\n"
-            f"import lattice_primitives.preprocess.filter_cells_basic\n"
-            f"import lattice_primitives.preprocess.normalize_total_log1p\n"
+            f"import lattice_primitives.all_primitives\n"
             f"adata = ad.read_h5ad('{self._remote_path}')\n"
             f"params = json.loads('''{params_json}''')\n"
             f"adata_out, warnings, result = run_primitive('{name}', adata, **params)\n"
@@ -189,6 +180,7 @@ class E2BSandbox:
             raise RuntimeError(f"E2B primitive '{name}' failed: {execution.error}")
 
         import json as _json
+
         result_dict = _json.loads(execution.text)
         return PrimitiveResult(**result_dict)
 

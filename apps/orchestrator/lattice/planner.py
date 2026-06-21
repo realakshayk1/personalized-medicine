@@ -53,13 +53,13 @@ async def _default_chat_fn(
 ) -> str:
     """Call Claude via the Claude Agent SDK and return the assistant text."""
     from claude_agent_sdk import query
-    from claude_agent_sdk.types import AssistantMessage, ClaudeAgentOptions, ResultMessage
-
-    full_prompt = (
-        f"{system_prompt}\n\n"
-        f"---\n\n"
-        f"User request: {user_message}"
+    from claude_agent_sdk.types import (
+        AssistantMessage,
+        ClaudeAgentOptions,
+        ResultMessage,
     )
+
+    full_prompt = f"{system_prompt}\n\n---\n\nUser request: {user_message}"
 
     options = ClaudeAgentOptions(
         system_prompt="",  # system prompt embedded in prompt for simplicity
@@ -150,9 +150,7 @@ class Planner:
         Plan — validated against PRIMITIVE_REGISTRY and workflow.
         """
         # Ensure primitives are registered
-        import lattice_primitives.preprocess.filter_cells_basic  # noqa: F401
-        import lattice_primitives.preprocess.normalize_total_log1p  # noqa: F401
-        import lattice_primitives.qc.calculate_qc_metrics  # noqa: F401
+        import lattice_primitives.all_primitives  # noqa: F401
 
         context_msg = (
             f"Session ID: {session_id}\n"
@@ -170,7 +168,9 @@ class Planner:
         if cleaned.startswith("```"):
             lines = cleaned.split("\n")
             # Remove first and last fence lines
-            cleaned = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            cleaned = "\n".join(
+                lines[1:-1] if lines[-1].strip() == "```" else lines[1:]
+            )
         cleaned = cleaned.strip()
 
         try:
@@ -187,7 +187,9 @@ class Planner:
         try:
             plan = Plan.model_validate(plan_dict)
         except ValidationError as exc:
-            raise ValueError(f"Planner output failed Pydantic validation: {exc}") from exc
+            raise ValueError(
+                f"Planner output failed Pydantic validation: {exc}"
+            ) from exc
 
         self._validate_plan(plan)
         logger.info(f"Planner: plan validated — {len(plan.steps)} step(s)")

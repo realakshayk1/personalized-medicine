@@ -1,0 +1,3 @@
+{% block user %}Computed a principal-component embedding ({{ params.get('n_comps', 50) }} components) over the highly variable genes to summarize the major axes of variation.{% endblock %}
+
+{% block methods %}Principal component analysis was performed using sc.pp.pca from Scanpy on the highly variable genes, retaining {{ params.get('n_comps', 50) }} components (random_state={{ params.get('random_state', 0) }} for reproducibility) [scanpy_pca]. The resulting cell embedding was stored in adata.obsm['X_pca'] and used as the input representation for neighbor-graph construction.{% endblock %}

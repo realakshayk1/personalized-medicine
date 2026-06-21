@@ -336,9 +336,7 @@ def _flush_pending_sanity_checks() -> None:
     for pname, func in list(_PENDING_SANITY_CHECKS.items()):
         if pname in PRIMITIVE_REGISTRY:
             entry = PRIMITIVE_REGISTRY[pname]
-            PRIMITIVE_REGISTRY[pname] = entry.model_copy(
-                update={"sanity_check_func": func}
-            )
+            PRIMITIVE_REGISTRY[pname] = entry.model_copy(update={"sanity_check_func": func})
             del _PENDING_SANITY_CHECKS[pname]
 
 
@@ -409,6 +407,14 @@ def run_primitive(
                 )
             ]
 
+    # Lift any figures a plot primitive stashed in .uns into the result, and
+    # remove them from the AnnData so they don't bloat the persisted state.
+    # Done AFTER sanity checks so a plot primitive's check can still see them.
+    figures: list[str] = []
+    raw_figs = adata_out.uns.pop("_lattice_figures", None)
+    if raw_figs is not None:
+        figures = list(raw_figs) if isinstance(raw_figs, (list, tuple)) else [raw_figs]
+
     # Render Jinja templates if available
     user_explanation = ""
     methods_paragraph = ""
@@ -433,6 +439,7 @@ def run_primitive(
         n_obs_after=n_obs_after,
         n_vars_before=n_vars_before,
         n_vars_after=n_vars_after,
+        figures=figures,
     )
 
     logger.info(
@@ -475,12 +482,16 @@ def _render_templates(
 
 
 def _extract_block(tmpl: Any, block_name: str, context: dict[str, Any]) -> str:
-    """Render only one named block from a Jinja2 template."""
+    """Render only one named block from a Jinja2 template.
+
+    Jinja2 exposes each block as a callable in `tmpl.blocks[name]` that takes a
+    context and yields rendered string fragments. Call it directly and join.
+    """
     try:
-        rendered_blocks = tmpl.blocks.get(block_name)
-        if rendered_blocks:
+        block_fn = tmpl.blocks.get(block_name)
+        if block_fn is not None:
             ctx = tmpl.new_context(context)
-            return "".join(rendered_blocks[0](ctx))
-    except Exception:
-        pass
+            return "".join(block_fn(ctx))
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning(f"Failed to render template block '{block_name}': {exc}")
     return ""

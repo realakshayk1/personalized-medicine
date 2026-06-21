@@ -23,13 +23,11 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import anndata
-import lattice_primitives.preprocess.filter_cells_basic  # noqa: F401, E402
-import lattice_primitives.preprocess.normalize_total_log1p  # noqa: F401, E402
 
 # ---------------------------------------------------------------------------
 # Ensure primitives are registered at startup
 # ---------------------------------------------------------------------------
-import lattice_primitives.qc.calculate_qc_metrics  # noqa: F401, E402
+import lattice_primitives.all_primitives  # noqa: F401, E402
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger

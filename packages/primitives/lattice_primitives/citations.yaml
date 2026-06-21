@@ -21,3 +21,35 @@ scanpy_filter_cells:
   journal: "Genome Biology"
   doi: "10.1186/s13059-017-1382-0"
   url: "https://doi.org/10.1186/s13059-017-1382-0"
+
+satija_hvg_2015:
+  title: "Spatial reconstruction of single-cell gene expression data"
+  authors: "Satija, R., Farrell, J.A., Gennert, D., Schier, A.F., & Regev, A."
+  year: 2015
+  journal: "Nature Biotechnology"
+  doi: "10.1038/nbt.3192"
+  url: "https://doi.org/10.1038/nbt.3192"
+
+scanpy_pca:
+  title: "SCANPY: large-scale single-cell gene expression data analysis"
+  authors: "Wolf, F.A., Angerer, P., & Theis, F.J."
+  year: 2018
+  journal: "Genome Biology"
+  doi: "10.1186/s13059-017-1382-0"
+  url: "https://doi.org/10.1186/s13059-017-1382-0"
+
+scanpy_umap_neighbors:
+  title: "UMAP: Uniform Manifold Approximation and Projection for Dimension Reduction"
+  authors: "McInnes, L., Healy, J., & Melville, J."
+  year: 2018
+  journal: "arXiv"
+  doi: "10.48550/arXiv.1802.03426"
+  url: "https://doi.org/10.48550/arXiv.1802.03426"
+
+traag_leiden_2019:
+  title: "From Louvain to Leiden: guaranteeing well-connected communities"
+  authors: "Traag, V.A., Waltman, L., & van Eck, N.J."
+  year: 2019
+  journal: "Scientific Reports"
+  doi: "10.1038/s41598-019-41695-z"
+  url: "https://doi.org/10.1038/s41598-019-41695-z"
